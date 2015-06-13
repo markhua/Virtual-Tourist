@@ -68,6 +68,9 @@
                                                 <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="dfx-Sw-Cwr">
                                                     <rect key="frame" x="0.0" y="0.0" width="163" height="162"/>
                                                 </imageView>
+                                                <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="n1B-6Z-VFG">
+                                                    <rect key="frame" x="71" y="71" width="20" height="20"/>
+                                                </activityIndicatorView>
                                             </subviews>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </view>
@@ -75,9 +78,12 @@
                                             <constraint firstAttribute="bottomMargin" secondItem="dfx-Sw-Cwr" secondAttribute="bottom" constant="-8" id="T5Y-C1-Q1O"/>
                                             <constraint firstItem="dfx-Sw-Cwr" firstAttribute="top" secondItem="PKM-r1-D9u" secondAttribute="topMargin" constant="-8" id="U0J-ah-Xjy"/>
                                             <constraint firstItem="dfx-Sw-Cwr" firstAttribute="leading" secondItem="PKM-r1-D9u" secondAttribute="leadingMargin" constant="-8" id="WNe-9Y-ogP"/>
+                                            <constraint firstItem="n1B-6Z-VFG" firstAttribute="centerX" secondItem="dfx-Sw-Cwr" secondAttribute="centerX" constant="-0.5" id="p1d-I3-y9M"/>
                                             <constraint firstAttribute="trailingMargin" secondItem="dfx-Sw-Cwr" secondAttribute="trailing" constant="-8" id="prb-Y3-zHX"/>
+                                            <constraint firstItem="n1B-6Z-VFG" firstAttribute="centerY" secondItem="dfx-Sw-Cwr" secondAttribute="centerY" id="zaj-oU-EST"/>
                                         </constraints>
                                         <connections>
+                                            <outlet property="activityIndicator" destination="n1B-6Z-VFG" id="Zyk-1o-Z34"/>
                                             <outlet property="image" destination="dfx-Sw-Cwr" id="6CV-Rd-bKx"/>
                                         </connections>
                                     </collectionViewCell>
@@ -115,6 +121,7 @@
                     <connections>
                         <outlet property="bottomButton" destination="I7v-fL-2xC" id="Xjy-qI-zZa"/>
                         <outlet property="collectionView" destination="r3e-Gd-heS" id="kxq-Ts-XWR"/>
+                        <outlet property="picturecollection" destination="r3e-Gd-heS" id="4Ix-xB-aYb"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="NwE-Zw-GSO" userLabel="First Responder" sceneMemberID="firstResponder"/>

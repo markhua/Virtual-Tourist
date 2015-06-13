@@ -18,6 +18,7 @@ import MapKit
 
 class PictureViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, NSFetchedResultsControllerDelegate {
    
+    @IBOutlet weak var picturecollection: UICollectionView!
     // The selected indexes array keeps all of the indexPaths for cells that are "selected". The array is
     // used inside cellForItemAtIndexPath to lower the alpha of selected cells.  You can see how the array
     // works by searchign through the code for 'selectedIndexes'
@@ -41,7 +42,20 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         // Start the fetched results controller
         var error: NSError?
         
-        var requeststring = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=7dada4fb9f8eed8fd9c8d082b72b6f41&text=yosemite&safe_search=1&extras=url_m&per_page=50&format=json&nojsoncallback=1&auth_token=72157654010964079-2f399c706d05a506&api_sig=7af4545d52304e4d654512df89b8cb4e"
+        fetchedResultsController.performFetch(&error)
+        var i = 0
+        
+        while i<12 {
+            let pic = Picture(url: "empty", context: sharedContext)
+            dispatch_async(dispatch_get_main_queue()){
+            CoreDataStackManager.sharedInstance().saveContext()
+            }
+            i++
+        }
+        
+        
+        /*
+        var requeststring = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=9d8bc403b0988271949b441b4dd13d79&text=yosemite&safe_search=1&extras=url_m&per_page=12&format=json&nojsoncallback=1&auth_token=72157654032370269-56d678ad205720d6&api_sig=5ff0ad48f090ba622e5f24289491be8d"
         
         let session = NSURLSession.sharedSession()
         let url = NSURL(string: requeststring)!
@@ -58,14 +72,14 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
                 if let photosDictionary = parsedResult.valueForKey("photos") as? [String:AnyObject] {
                     dispatch_async(dispatch_get_main_queue()){
                     if let images = photosDictionary["photo"] as? [[String: AnyObject]] {
-                        let random = Int(arc4random_uniform(UInt32(40))) + 1
-                        let image = images[random]
-                        let pic1 = Picture(url: image["url_m"] as! String, context: self.sharedContext)
-                        CoreDataStackManager.sharedInstance().saveContext()
-                        let image1 = images[random+2]
-                        let pic2 = Picture(url: image1["url_m"] as! String, context: self.sharedContext)
-                        /*let image2 = images[random+4]
-                        let pic3 = Picture(url: image2["url_m"] as! String, context: self.sharedContext)*/
+                        
+                        for image in images {
+                            let pic = Picture(url: image["url_m"] as! String, context: self.sharedContext)
+                            CoreDataStackManager.sharedInstance().saveContext()
+                            dispatch_async(dispatch_get_main_queue()) {
+                                self.picturecollection.reloadData()
+                            }
+                        }
                         
                     } else {
                         println("Cant find key 'pages' in \(photosDictionary)")
@@ -78,8 +92,9 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         }
         
         task.resume()
+        */
         
-        fetchedResultsController.performFetch(&error)
+        
         
         if let error = error {
             println("Error performing initial fetch: \(error)")
@@ -111,29 +126,38 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     // MARK: - Configure Cell
     
     func configureCell(cell: PictureCell, atIndexPath indexPath: NSIndexPath) {
-
+        
         let picture = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Picture
-        
+    
         println(picture.imageURL)
+        
+        if picture.imageURL == "empty" {
+            cell.image.image = UIImage(named: "Placeholder")
+            cell.activityIndicator.hidden = false
+        } else {
 
-        //let url = NSURL(string: picture.imageURL)!
-        //let imageData = NSData(contentsOfURL: url)
+            let url = NSURL(string: picture.imageURL)!
+            let imageData = NSData(contentsOfURL: url)
         
-        let filename = picture.imageURL.lastPathComponent
-        let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
-        let pathArray = [dirPath, filename]
-        let fileURL =  NSURL.fileURLWithPathComponents(pathArray)!
-        
-        cell.image.image = UIImage(contentsOfFile: fileURL.path!)
+            if picture.imageURL != "" {
+                let filename = picture.imageURL.lastPathComponent
+                let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
+                let pathArray = [dirPath, filename]
+                let fileURL =  NSURL.fileURLWithPathComponents(pathArray)!
+                dispatch_async(dispatch_get_main_queue()){
+                cell.image.image = UIImage(contentsOfFile: fileURL.path!)
+                }
+            }
+        }
         
         // If the cell is "selected" it's color panel is grayed out
         // we use the Swift `find` function to see if the indexPath is in the array
-        /*
+        
         if let index = find(selectedIndexes, indexPath) {
             cell.image.alpha = 0.05
         } else {
             cell.image.alpha = 1.0
-        }*/
+        }
     }
     
     
@@ -154,6 +178,10 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         
         
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("PictureCell", forIndexPath: indexPath) as! PictureCell
+        
+        var defaultimage = UIImage(named: "Placeholder")
+        cell.image.image = defaultimage
+        
         self.configureCell(cell, atIndexPath: indexPath)
         return cell
     }
