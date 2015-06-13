@@ -29,6 +29,8 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     var deletedIndexPaths: [NSIndexPath]!
     var updatedIndexPaths: [NSIndexPath]!
     
+    var requestResult = [String]()
+    
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var bottomButton: UIBarButtonItem!
     
@@ -43,19 +45,9 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         var error: NSError?
         
         fetchedResultsController.performFetch(&error)
-        var i = 0
-        
-        while i<12 {
-            let pic = Picture(url: "empty", context: sharedContext)
-            dispatch_async(dispatch_get_main_queue()){
-            CoreDataStackManager.sharedInstance().saveContext()
-            }
-            i++
-        }
         
         
-        /*
-        var requeststring = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=9d8bc403b0988271949b441b4dd13d79&text=yosemite&safe_search=1&extras=url_m&per_page=12&format=json&nojsoncallback=1&auth_token=72157654032370269-56d678ad205720d6&api_sig=5ff0ad48f090ba622e5f24289491be8d"
+        var requeststring = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=cfe31c9ebb49f4c812b0456ac32da633&text=lujiazui&safe_search=1&extras=url_m&per_page=12&format=json&nojsoncallback=1&auth_token=72157652148622954-3d72bad5bffd3b8c&api_sig=1382cdcafa939c181654655faabde740"
         
         let session = NSURLSession.sharedSession()
         let url = NSURL(string: requeststring)!
@@ -69,22 +61,36 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
                 var parsingError: NSError? = nil
                 let parsedResult = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.AllowFragments, error: &parsingError) as! NSDictionary
                 
+                
                 if let photosDictionary = parsedResult.valueForKey("photos") as? [String:AnyObject] {
-                    dispatch_async(dispatch_get_main_queue()){
+                    
                     if let images = photosDictionary["photo"] as? [[String: AnyObject]] {
                         
                         for image in images {
-                            let pic = Picture(url: image["url_m"] as! String, context: self.sharedContext)
+                            
+                            self.requestResult.append(image["url_m"] as! String)
+                            /*let pic = Picture(url: image["url_m"] as! String, context: self.sharedContext)
+                            dispatch_async(dispatch_get_main_queue()){
                             CoreDataStackManager.sharedInstance().saveContext()
-                            dispatch_async(dispatch_get_main_queue()) {
-                                self.picturecollection.reloadData()
+                            }*/
+                            
+                        }
+                        println(self.requestResult)
+                        
+                        var i = 0
+                        
+                        while i<12 {
+                            let pic = Picture(url: "empty", context: self.sharedContext)
+                            dispatch_async(dispatch_get_main_queue()){
+                                CoreDataStackManager.sharedInstance().saveContext()
                             }
+                            i++
                         }
                         
                     } else {
                         println("Cant find key 'pages' in \(photosDictionary)")
                     }
-                    }
+                    
                 } else {
                     println("Cant find key 'photos' in \(parsedResult)")
                 }
@@ -92,8 +98,6 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         }
         
         task.resume()
-        */
-        
         
         
         if let error = error {
@@ -103,6 +107,10 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         updateBottomButton()
     }
     
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+    }
 
     
     // Layout the collection view
@@ -128,28 +136,42 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     func configureCell(cell: PictureCell, atIndexPath indexPath: NSIndexPath) {
         
         let picture = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Picture
-    
+
         println(picture.imageURL)
         
-        if picture.imageURL == "empty" {
-            cell.image.image = UIImage(named: "Placeholder")
-            cell.activityIndicator.hidden = false
-        } else {
-
-            let url = NSURL(string: picture.imageURL)!
-            let imageData = NSData(contentsOfURL: url)
+        let queue:dispatch_queue_t = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)
         
-            if picture.imageURL != "" {
+        
+        dispatch_async(queue, { () -> Void in
+            
+            if picture.imageURL == "empty" {
+                
+                //cell.image.image = UIImage(named: "Placeholder")
+                cell.activityIndicator.hidden = false
+                if (indexPath.row < self.requestResult.count)
+                {
+                    dispatch_async(dispatch_get_main_queue()){
+                    println(self.requestResult[indexPath.row])
+                    picture.imageURL = self.requestResult[indexPath.row]
+                    cell.activityIndicator.hidden = true
+                    }
+                }
+                
+            } else {
+                
+                let url = NSURL(string: picture.imageURL)!
+                let imageData = NSData(contentsOfURL: url)
+                
                 let filename = picture.imageURL.lastPathComponent
                 let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
                 let pathArray = [dirPath, filename]
                 let fileURL =  NSURL.fileURLWithPathComponents(pathArray)!
                 dispatch_async(dispatch_get_main_queue()){
-                cell.image.image = UIImage(contentsOfFile: fileURL.path!)
+                    cell.image.image = UIImage(contentsOfFile: fileURL.path!)
                 }
             }
-        }
-        
+        })
+
         // If the cell is "selected" it's color panel is grayed out
         // we use the Swift `find` function to see if the indexPath is in the array
         
@@ -178,10 +200,6 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         
         
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("PictureCell", forIndexPath: indexPath) as! PictureCell
-        
-        var defaultimage = UIImage(named: "Placeholder")
-        cell.image.image = defaultimage
-        
         self.configureCell(cell, atIndexPath: indexPath)
         return cell
     }

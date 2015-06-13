@@ -65,15 +65,16 @@
                                             <rect key="frame" x="0.0" y="0.0" width="163" height="162"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="dfx-Sw-Cwr">
-                                                    <rect key="frame" x="0.0" y="0.0" width="163" height="162"/>
-                                                </imageView>
                                                 <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="n1B-6Z-VFG">
                                                     <rect key="frame" x="71" y="71" width="20" height="20"/>
                                                 </activityIndicatorView>
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="dfx-Sw-Cwr">
+                                                    <rect key="frame" x="0.0" y="0.0" width="163" height="162"/>
+                                                </imageView>
                                             </subviews>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </view>
+                                        <color key="backgroundColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         <constraints>
                                             <constraint firstAttribute="bottomMargin" secondItem="dfx-Sw-Cwr" secondAttribute="bottom" constant="-8" id="T5Y-C1-Q1O"/>
                                             <constraint firstItem="dfx-Sw-Cwr" firstAttribute="top" secondItem="PKM-r1-D9u" secondAttribute="topMargin" constant="-8" id="U0J-ah-Xjy"/>
