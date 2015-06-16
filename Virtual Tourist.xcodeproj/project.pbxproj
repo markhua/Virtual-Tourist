@@ -19,6 +19,7 @@
 		BCEF8E341B297FFF00AF5825 /* PictureCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEF8E311B297FFF00AF5825 /* PictureCell.swift */; };
 		BCEF8E351B297FFF00AF5825 /* PictureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEF8E321B297FFF00AF5825 /* PictureViewController.swift */; };
 		BCEF8E371B2987EA00AF5825 /* CoreDataStackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEF8E361B2987EA00AF5825 /* CoreDataStackManager.swift */; };
+		BCF299731B2E4B1D00D83DC5 /* Pin.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCF299721B2E4B1D00D83DC5 /* Pin.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +49,7 @@
 		BCEF8E311B297FFF00AF5825 /* PictureCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PictureCell.swift; sourceTree = "<group>"; };
 		BCEF8E321B297FFF00AF5825 /* PictureViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PictureViewController.swift; sourceTree = "<group>"; };
 		BCEF8E361B2987EA00AF5825 /* CoreDataStackManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStackManager.swift; sourceTree = "<group>"; };
+		BCF299721B2E4B1D00D83DC5 /* Pin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Pin.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,6 +94,7 @@
 			isa = PBXGroup;
 			children = (
 				BCEF8E301B297FFF00AF5825 /* Picture.swift */,
+				BCF299721B2E4B1D00D83DC5 /* Pin.swift */,
 				BCEF8E311B297FFF00AF5825 /* PictureCell.swift */,
 				BCEF8E321B297FFF00AF5825 /* PictureViewController.swift */,
 				BCEF8E361B2987EA00AF5825 /* CoreDataStackManager.swift */,
@@ -234,6 +237,7 @@
 				BCECDFE81B2826D600D6118B /* LocationViewController.swift in Sources */,
 				BCEF8E331B297FFF00AF5825 /* Picture.swift in Sources */,
 				BCECDFE61B2826D600D6118B /* Virtual_Tourist.xcdatamodeld in Sources */,
+				BCF299731B2E4B1D00D83DC5 /* Pin.swift in Sources */,
 				BCEF8E371B2987EA00AF5825 /* CoreDataStackManager.swift in Sources */,
 				BCEF8E341B297FFF00AF5825 /* PictureCell.swift in Sources */,
 				BCEF8E351B297FFF00AF5825 /* PictureViewController.swift in Sources */,

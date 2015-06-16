@@ -15,6 +15,7 @@ class Picture: NSManagedObject {
 
     // We will store UIColor values in this value attribute
     @NSManaged var imageURL: String
+    @NSManaged var pin: Pin?
     
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
         super.init(entity: entity, insertIntoManagedObjectContext: context)
@@ -26,9 +27,12 @@ class Picture: NSManagedObject {
         // Core Data
         let entity =  NSEntityDescription.entityForName("Picture", inManagedObjectContext: context)!
         super.init(entity: entity, insertIntoManagedObjectContext: context)
-        println(url)
         
-        // Dictionary
+        updateImage(url)
+    }
+    
+    func updateImage(url: String) {
+        
         let imageurl = NSURL(string: url)!
         if let imageData = NSData(contentsOfURL: imageurl) {
             imageData.writeToURL(audioFileURL(url), atomically: true)

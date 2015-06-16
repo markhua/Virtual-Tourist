@@ -17,8 +17,24 @@ import MapKit
  */
 
 class PictureViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, NSFetchedResultsControllerDelegate {
+    
+    let BASE_URL = "https://api.flickr.com/services/rest/"
+    let METHOD_NAME = "flickr.photos.search"
+    let API_KEY = "74b4631959ffd555071080099c41364a"
+    let EXTRAS = "url_m"
+    let SAFE_SEARCH = "1"
+    let DATA_FORMAT = "json"
+    let NO_JSON_CALLBACK = "1"
+    let BOUNDING_BOX_HALF_WIDTH = 1.0
+    let BOUNDING_BOX_HALF_HEIGHT = 1.0
+    let LAT_MIN = -90.0
+    let LAT_MAX = 90.0
+    let LON_MIN = -180.0
+    let LON_MAX = 180.0
    
     @IBOutlet weak var picturecollection: UICollectionView!
+    var pin: Pin!
+    
     // The selected indexes array keeps all of the indexPaths for cells that are "selected". The array is
     // used inside cellForItemAtIndexPath to lower the alpha of selected cells.  You can see how the array
     // works by searchign through the code for 'selectedIndexes'
@@ -30,6 +46,7 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     var updatedIndexPaths: [NSIndexPath]!
     
     var requestResult = [String]()
+    var downloadCounter = 12
     
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var bottomButton: UIBarButtonItem!
@@ -46,12 +63,30 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         
         fetchedResultsController.performFetch(&error)
         
-        
-        var requeststring = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=cfe31c9ebb49f4c812b0456ac32da633&text=lujiazui&safe_search=1&extras=url_m&per_page=12&format=json&nojsoncallback=1&auth_token=72157652148622954-3d72bad5bffd3b8c&api_sig=1382cdcafa939c181654655faabde740"
+        if pin.pictures.isEmpty {
+
+            var i = 0
+            while i<12 {
+                let pic = Picture(url: "empty", context: self.sharedContext)
+                pic.pin = self.pin
+                dispatch_async(dispatch_get_main_queue()){
+                    CoreDataStackManager.sharedInstance().saveContext()
+                }
+                i++
+            }
+            
+        }
+        updateBottomButton()
+    }
+    
+    
+    func getImageFromFlickrBySearch(pic: Picture, methodArguments: [String : AnyObject]) {
         
         let session = NSURLSession.sharedSession()
-        let url = NSURL(string: requeststring)!
+        let urlString = BASE_URL + escapedParameters(methodArguments)
+        let url = NSURL(string: urlString)!
         let request = NSURLRequest(URL: url)
+        var imageUrlString = "none"
         
         let task = session.dataTaskWithRequest(request) {data, response, downloadError in
             if let error = downloadError {
@@ -61,36 +96,72 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
                 var parsingError: NSError? = nil
                 let parsedResult = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.AllowFragments, error: &parsingError) as! NSDictionary
                 
-                
                 if let photosDictionary = parsedResult.valueForKey("photos") as? [String:AnyObject] {
                     
-                    if let images = photosDictionary["photo"] as? [[String: AnyObject]] {
+                    if let totalPages = photosDictionary["pages"] as? Int {
                         
-                        for image in images {
-                            
-                            self.requestResult.append(image["url_m"] as! String)
-                            /*let pic = Picture(url: image["url_m"] as! String, context: self.sharedContext)
-                            dispatch_async(dispatch_get_main_queue()){
-                            CoreDataStackManager.sharedInstance().saveContext()
-                            }*/
-                            
-                        }
-                        println(self.requestResult)
-                        
-                        var i = 0
-                        
-                        while i<12 {
-                            let pic = Picture(url: "empty", context: self.sharedContext)
-                            dispatch_async(dispatch_get_main_queue()){
-                                CoreDataStackManager.sharedInstance().saveContext()
-                            }
-                            i++
-                        }
+                        /* Flickr API - will only return up the 4000 images (100 per page * 40 page max) */
+                        let pageLimit = min(totalPages, 40)
+                        let randomPage = Int(arc4random_uniform(UInt32(pageLimit))) + 1
+                        self.getImageFromFlickrBySearchWithPage(pic, methodArguments: methodArguments, pageNumber: randomPage)
                         
                     } else {
                         println("Cant find key 'pages' in \(photosDictionary)")
                     }
+                } else {
+                    println("Cant find key 'photos' in \(parsedResult)")
+                }
+            }
+        }
+        
+        task.resume()
+    }
+    
+    func getImageFromFlickrBySearchWithPage (pic: Picture, methodArguments: [String : AnyObject], pageNumber: Int) {
+        
+        /* Add the page to the method's arguments */
+        var withPageDictionary = methodArguments
+        withPageDictionary["page"] = pageNumber
+        var imageUrlString = "none"
+        
+        let session = NSURLSession.sharedSession()
+        let urlString = BASE_URL + escapedParameters(withPageDictionary)
+        let url = NSURL(string: urlString)!
+        let request = NSURLRequest(URL: url)
+        
+        let task = session.dataTaskWithRequest(request) {data, response, downloadError in
+            if let error = downloadError {
+                println("Could not complete the request \(error)")
+            } else {
+                var parsingError: NSError? = nil
+                let parsedResult = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.AllowFragments, error: &parsingError) as! NSDictionary
+                
+                if let photosDictionary = parsedResult.valueForKey("photos") as? [String:AnyObject] {
                     
+                    var totalPhotosVal = 0
+                    if let totalPhotos = photosDictionary["total"] as? String {
+                        totalPhotosVal = (totalPhotos as NSString).integerValue
+                    }
+                    
+                    if totalPhotosVal > 0 {
+                        if let photosArray = photosDictionary["photo"] as? [[String: AnyObject]] {
+                            
+                            let randomPhotoIndex = Int(arc4random_uniform(UInt32(photosArray.count)))
+                            let photoDictionary = photosArray[randomPhotoIndex] as [String: AnyObject]
+                            
+                            imageUrlString = photoDictionary["url_m"] as! String
+                            //self.requestResult.append(imageUrlString)
+                            
+                            println(imageUrlString)
+                            dispatch_async(dispatch_get_main_queue()){
+                                pic.updateImage(imageUrlString)
+                                CoreDataStackManager.sharedInstance().saveContext()
+                            }
+
+                        } else {
+                            println("Cant find key 'photo' in \(photosDictionary)")
+                        }
+                    }
                 } else {
                     println("Cant find key 'photos' in \(parsedResult)")
                 }
@@ -99,14 +170,8 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         
         task.resume()
         
-        
-        if let error = error {
-            println("Error performing initial fetch: \(error)")
-        }
-        
-        updateBottomButton()
     }
-    
+
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
@@ -135,9 +200,19 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     
     func configureCell(cell: PictureCell, atIndexPath indexPath: NSIndexPath) {
         
+        let methodArguments = [
+            "method": METHOD_NAME,
+            "api_key": API_KEY,
+            "bbox": createBoundingBoxString(),
+            "safe_search": SAFE_SEARCH,
+            "extras": EXTRAS,
+            "format": DATA_FORMAT,
+            "nojsoncallback": NO_JSON_CALLBACK
+        ]
+        
         let picture = self.fetchedResultsController.objectAtIndexPath(indexPath) as! Picture
 
-        println(picture.imageURL)
+        println("configure cell no \(indexPath.row)")
         
         let queue:dispatch_queue_t = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)
         
@@ -148,15 +223,23 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
                 
                 //cell.image.image = UIImage(named: "Placeholder")
                 cell.activityIndicator.hidden = false
-                if (indexPath.row < self.requestResult.count)
-                {
-                    dispatch_async(dispatch_get_main_queue()){
-                    println(self.requestResult[indexPath.row])
-                    picture.imageURL = self.requestResult[indexPath.row]
-                    cell.activityIndicator.hidden = true
-                    }
-                }
                 
+                    
+                    self.getImageFromFlickrBySearch(picture, methodArguments: methodArguments)
+                    /*
+                    if ( self.requestResult.count > indexPath.row)
+                    {
+                        println("update picture in cell \(indexPath.row)")
+                        dispatch_async(dispatch_get_main_queue()){
+                            picture.updateImage(self.requestResult[indexPath.row])
+                            CoreDataStackManager.sharedInstance().saveContext()
+                        }
+                        
+                        
+                        cell.activityIndicator.hidden = true
+                    }*/
+                
+
             } else {
                 
                 let url = NSURL(string: picture.imageURL)!
@@ -166,6 +249,7 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
                 let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
                 let pathArray = [dirPath, filename]
                 let fileURL =  NSURL.fileURLWithPathComponents(pathArray)!
+                println(fileURL.path!)
                 dispatch_async(dispatch_get_main_queue()){
                     cell.image.image = UIImage(contentsOfFile: fileURL.path!)
                 }
@@ -182,6 +266,21 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         }
     }
     
+    func createBoundingBoxString() -> String {
+        
+        let latitude = self.pin.lat
+        let longitude = self.pin.long
+        
+        /* Fix added to ensure box is bounded by minimum and maximums */
+        let bottom_left_lon = max(longitude - BOUNDING_BOX_HALF_WIDTH, LON_MIN)
+        let bottom_left_lat = max(latitude - BOUNDING_BOX_HALF_HEIGHT, LAT_MIN)
+        let top_right_lon = min(longitude + BOUNDING_BOX_HALF_HEIGHT, LON_MAX)
+        let top_right_lat = min(latitude + BOUNDING_BOX_HALF_HEIGHT, LAT_MAX)
+        
+        return "\(bottom_left_lon),\(bottom_left_lat),\(top_right_lon),\(top_right_lat)"
+    }
+
+    
     
     // MARK: - UICollectionView
     
@@ -197,7 +296,6 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     }
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
-        
         
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("PictureCell", forIndexPath: indexPath) as! PictureCell
         self.configureCell(cell, atIndexPath: indexPath)
@@ -229,6 +327,7 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         
         let fetchRequest = NSFetchRequest(entityName: "Picture")
         fetchRequest.sortDescriptors = []
+        fetchRequest.predicate = NSPredicate(format: "pin == %@", self.pin);
         
         let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.sharedContext, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
@@ -346,11 +445,36 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     }
     
     func updateBottomButton() {
+        if self.downloadCounter == 0 {
+            self.bottomButton.enabled = true
+        }
+        
         if selectedIndexes.count > 0 {
             bottomButton.title = "Remove Selected Pictures"
         } else {
             bottomButton.title = "Clear All"
         }
+    }
+    
+    /* Helper function: Given a dictionary of parameters, convert to a string for a url */
+    func escapedParameters(parameters: [String : AnyObject]) -> String {
+        
+        var urlVars = [String]()
+        
+        for (key, value) in parameters {
+            
+            /* Make sure that it is a string value */
+            let stringValue = "\(value)"
+            
+            /* Escape it */
+            let escapedValue = stringValue.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())
+            
+            /* Append it */
+            urlVars += [key + "=" + "\(escapedValue!)"]
+            
+        }
+        
+        return (!urlVars.isEmpty ? "?" : "") + join("&", urlVars)
     }
 
 }
