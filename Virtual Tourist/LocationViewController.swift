@@ -70,10 +70,14 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         
         let annotation = MKPointAnnotation()
         annotation.coordinate = touchMapCoordinate
+        annotation.title = "default"
+        annotation.subtitle = "\(pins.count)"
         
         mapView.addAnnotation(annotation)
         
         let newPin = Pin(longitude: annotation.coordinate.longitude, latitude: annotation.coordinate.latitude, context: sharedContext)
+        
+        pins.append(newPin)
         
         CoreDataStackManager.sharedInstance().saveContext()
     }
@@ -157,9 +161,8 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         
         let controller = storyboard!.instantiateViewControllerWithIdentifier("PictureViewController") as! PictureViewController
         let pin = pins[index]
-        
         controller.pin = pin
-        println(pin.long)
+        
         self.navigationController!.pushViewController(controller, animated: true)
 
     }

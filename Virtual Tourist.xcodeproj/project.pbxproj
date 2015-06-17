@@ -19,6 +19,8 @@
 		BCEF8E341B297FFF00AF5825 /* PictureCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEF8E311B297FFF00AF5825 /* PictureCell.swift */; };
 		BCEF8E351B297FFF00AF5825 /* PictureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEF8E321B297FFF00AF5825 /* PictureViewController.swift */; };
 		BCEF8E371B2987EA00AF5825 /* CoreDataStackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCEF8E361B2987EA00AF5825 /* CoreDataStackManager.swift */; };
+		BCF1D20C1B30F19900FB6E92 /* AlbumClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCF1D20B1B30F19900FB6E92 /* AlbumClient.swift */; };
+		BCF1D20E1B30F22F00FB6E92 /* AlbumConvenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCF1D20D1B30F22F00FB6E92 /* AlbumConvenience.swift */; };
 		BCF299731B2E4B1D00D83DC5 /* Pin.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCF299721B2E4B1D00D83DC5 /* Pin.swift */; };
 /* End PBXBuildFile section */
 
@@ -49,6 +51,8 @@
 		BCEF8E311B297FFF00AF5825 /* PictureCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PictureCell.swift; sourceTree = "<group>"; };
 		BCEF8E321B297FFF00AF5825 /* PictureViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PictureViewController.swift; sourceTree = "<group>"; };
 		BCEF8E361B2987EA00AF5825 /* CoreDataStackManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStackManager.swift; sourceTree = "<group>"; };
+		BCF1D20B1B30F19900FB6E92 /* AlbumClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlbumClient.swift; sourceTree = "<group>"; };
+		BCF1D20D1B30F22F00FB6E92 /* AlbumConvenience.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlbumConvenience.swift; sourceTree = "<group>"; };
 		BCF299721B2E4B1D00D83DC5 /* Pin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Pin.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -97,6 +101,8 @@
 				BCF299721B2E4B1D00D83DC5 /* Pin.swift */,
 				BCEF8E311B297FFF00AF5825 /* PictureCell.swift */,
 				BCEF8E321B297FFF00AF5825 /* PictureViewController.swift */,
+				BCF1D20B1B30F19900FB6E92 /* AlbumClient.swift */,
+				BCF1D20D1B30F22F00FB6E92 /* AlbumConvenience.swift */,
 				BCEF8E361B2987EA00AF5825 /* CoreDataStackManager.swift */,
 				BCECDFE21B2826D600D6118B /* AppDelegate.swift */,
 				BCECDFE71B2826D600D6118B /* LocationViewController.swift */,
@@ -239,7 +245,9 @@
 				BCECDFE61B2826D600D6118B /* Virtual_Tourist.xcdatamodeld in Sources */,
 				BCF299731B2E4B1D00D83DC5 /* Pin.swift in Sources */,
 				BCEF8E371B2987EA00AF5825 /* CoreDataStackManager.swift in Sources */,
+				BCF1D20C1B30F19900FB6E92 /* AlbumClient.swift in Sources */,
 				BCEF8E341B297FFF00AF5825 /* PictureCell.swift in Sources */,
+				BCF1D20E1B30F22F00FB6E92 /* AlbumConvenience.swift in Sources */,
 				BCEF8E351B297FFF00AF5825 /* PictureViewController.swift in Sources */,
 				BCECDFE31B2826D600D6118B /* AppDelegate.swift in Sources */,
 			);

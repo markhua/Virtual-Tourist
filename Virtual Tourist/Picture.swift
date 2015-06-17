@@ -35,8 +35,8 @@ class Picture: NSManagedObject {
         
         let imageurl = NSURL(string: url)!
         if let imageData = NSData(contentsOfURL: imageurl) {
-            imageData.writeToURL(audioFileURL(url), atomically: true)
-            imageURL = audioFileURL(url).path!
+            imageData.writeToURL(imageFileURL(url), atomically: true)
+            imageURL = imageFileURL(url).path!
             println(imageURL)
             
         }else{
@@ -44,12 +44,11 @@ class Picture: NSManagedObject {
         }
     }
     
-    func audioFileURL(url: String) ->  NSURL {
+    func imageFileURL(url: String) ->  NSURL {
         let filename = url.lastPathComponent
         let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
         let pathArray = [dirPath, filename]
         let fileURL =  NSURL.fileURLWithPathComponents(pathArray)!
-        
         return fileURL
     }
     
