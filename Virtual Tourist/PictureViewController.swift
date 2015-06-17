@@ -268,6 +268,7 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         
         for picture in fetchedResultsController.fetchedObjects as! [Picture] {
             sharedContext.deleteObject(picture)
+            deleteFileFromPath(picture.imageURL)
         }
         CoreDataStackManager.sharedInstance().saveContext()
     }
@@ -281,6 +282,7 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         
         for picture in colorsToDelete {
             sharedContext.deleteObject(picture)
+            deleteFileFromPath(picture.imageURL)
         }
         
         selectedIndexes = [NSIndexPath]()
@@ -299,5 +301,15 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     }
     
     
+    func deleteFileFromPath(imageURL: String){
+        let filename = imageURL.lastPathComponent
+        let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
+        let pathArray = [dirPath, filename]
+        let fileURL =  NSURL.fileURLWithPathComponents(pathArray)!
+
+        var fileManager: NSFileManager = NSFileManager.defaultManager()
+        var error: NSErrorPointer = NSErrorPointer()
+        fileManager.removeItemAtPath(fileURL.path!, error: error)
+    }
 
 }
