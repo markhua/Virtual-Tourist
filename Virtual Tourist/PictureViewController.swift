@@ -105,10 +105,10 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
                         let imageURL = NSURL(string: result!)
                         if let imageData = NSData(contentsOfURL: imageURL!) {
                             dispatch_async(dispatch_get_main_queue()){
-                                cell.image.image = UIImage(data: imageData)
-                            picture.updateImage(result!)
-                            CoreDataStackManager.sharedInstance().saveContext()
-                            cell.activityIndicator.hidden = true
+                                //cell.image.image = UIImage(data: imageData)
+                                picture.updateImage(result!)
+                                CoreDataStackManager.sharedInstance().saveContext()
+                                cell.activityIndicator.hidden = true
                             }
                         }
                     }
