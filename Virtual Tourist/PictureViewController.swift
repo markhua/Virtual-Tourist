@@ -91,6 +91,8 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         
         let queue:dispatch_queue_t = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)
         
+        println("Configure Cell")
+        
         
         dispatch_async(queue, { () -> Void in
             
@@ -100,40 +102,37 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
                 cell.activityIndicator.hidden = false
                 AlbumClient.sharedInstance().getImageFromFlickrBySearch(){ success, result in
                     if success {
-                        dispatch_async(dispatch_get_main_queue()){
-                            let imageURL = NSURL(string: result!)
-                            if let imageData = NSData(contentsOfURL: imageURL!) {
+                        let imageURL = NSURL(string: result!)
+                        if let imageData = NSData(contentsOfURL: imageURL!) {
+                            dispatch_async(dispatch_get_main_queue()){
                                 cell.image.image = UIImage(data: imageData)
+                            picture.updateImage(result!)
+                            CoreDataStackManager.sharedInstance().saveContext()
+                            cell.activityIndicator.hidden = true
                             }
                         }
-                        picture.updateImage(result!)
-                        CoreDataStackManager.sharedInstance().saveContext()
                     }
+                    
                 }
 
             } else {
-                
-                let url = NSURL(string: picture.imageURL)!
-                let imageData = NSData(contentsOfURL: url)
-                
-                let filename = picture.imageURL.lastPathComponent
-                let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
-                let pathArray = [dirPath, filename]
-                let fileURL =  NSURL.fileURLWithPathComponents(pathArray)!
-                dispatch_async(dispatch_get_main_queue()){
-                    cell.image.image = UIImage(contentsOfFile: fileURL.path!)
+               
+                if cell.image.image == nil {
+                    println("display image")
+                    let url = NSURL(string: picture.imageURL)!
+                    let imageData = NSData(contentsOfURL: url)
+                    
+                    let filename = picture.imageURL.lastPathComponent
+                    let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
+                    let pathArray = [dirPath, filename]
+                    let fileURL =  NSURL.fileURLWithPathComponents(pathArray)!
+                    dispatch_async(dispatch_get_main_queue()){
+                        cell.image.image = UIImage(contentsOfFile: fileURL.path!)
+                    }
                 }
             }
-        })
 
-        // If the cell is "selected" it's color panel is grayed out
-        // we use the Swift `find` function to see if the indexPath is in the array
-        
-        if let index = find(selectedIndexes, indexPath) {
-            cell.image.alpha = 0.05
-        } else {
-            cell.image.alpha = 1.0
-        }
+        })
     }
     
     
@@ -163,6 +162,17 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
         
         let cell = collectionView.cellForItemAtIndexPath(indexPath) as! PictureCell
+        
+        // If the cell is "selected" it's color panel is grayed out
+        // we use the Swift `find` function to see if the indexPath is in the array
+        dispatch_async(dispatch_get_main_queue()){
+            
+            if let index = find(self.selectedIndexes, indexPath) {
+                cell.image.alpha = 0.05
+            } else {
+                cell.image.alpha = 1.0
+            }
+        }
         
         // Whenever a cell is tapped we will toggle its presence in the selectedIndexes array
         if let index = find(selectedIndexes, indexPath) {
@@ -237,18 +247,18 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         //println("in controllerDidChangeContent. changes.count: \(insertedIndexPaths.count + deletedIndexPaths.count)")
         
         collectionView.performBatchUpdates({() -> Void in
-
-            for indexPath in self.insertedIndexPaths {
-                self.collectionView.insertItemsAtIndexPaths([indexPath])
-            }
-            
-            for indexPath in self.deletedIndexPaths {
-                self.collectionView.deleteItemsAtIndexPaths([indexPath])
-            }
-            
-            for indexPath in self.updatedIndexPaths {
-                self.collectionView.reloadItemsAtIndexPaths([indexPath])
-            }
+                
+                for indexPath in self.insertedIndexPaths {
+                    self.collectionView.insertItemsAtIndexPaths([indexPath])
+                }
+                
+                for indexPath in self.deletedIndexPaths {
+                    self.collectionView.deleteItemsAtIndexPaths([indexPath])
+                }
+                
+                for indexPath in self.updatedIndexPaths {
+                    self.collectionView.reloadItemsAtIndexPaths([indexPath])
+                }
             
         }, completion: nil)
     }
@@ -284,6 +294,8 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
             sharedContext.deleteObject(picture)
             deleteFileFromPath(picture.imageURL)
         }
+        
+        CoreDataStackManager.sharedInstance().saveContext()
         
         selectedIndexes = [NSIndexPath]()
     }

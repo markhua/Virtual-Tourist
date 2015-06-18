@@ -21,27 +21,24 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        mapView.delegate = self
-        
         var longPressRecogniser = UILongPressGestureRecognizer(target: self, action: "handleLongPress:")
-        
         longPressRecogniser.minimumPressDuration = 1.0
         mapView.addGestureRecognizer(longPressRecogniser)
+        mapView.delegate = self
         
-        if (CLLocationManager.locationServicesEnabled())
-        {
-            locationManager = CLLocationManager()
-            locationManager.delegate = self
-            locationManager.desiredAccuracy = kCLLocationAccuracyBest
-            locationManager.requestAlwaysAuthorization()
-            locationManager.startUpdatingLocation()
-        }
+        locationManager = CLLocationManager()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestAlwaysAuthorization()
+        locationManager.startUpdatingLocation()
         
         var long = NSUserDefaults.standardUserDefaults().doubleForKey("Longitude")
         var lat = NSUserDefaults.standardUserDefaults().doubleForKey("Latitude")
-        var center =  CLLocationCoordinate2D(latitude: lat, longitude: long)
-        var span = MKCoordinateSpan(latitudeDelta: NSUserDefaults.standardUserDefaults().doubleForKey("LatDel"), longitudeDelta: NSUserDefaults.standardUserDefaults().doubleForKey("LongDel"))
-        mapView.setRegion(MKCoordinateRegion(center: center, span: span), animated: true)
+        if long != 0 || lat != 0 {
+            var center =  CLLocationCoordinate2D(latitude: lat, longitude: long)
+            var span = MKCoordinateSpan(latitudeDelta: NSUserDefaults.standardUserDefaults().doubleForKey("LatDel"), longitudeDelta: NSUserDefaults.standardUserDefaults().doubleForKey("LongDel"))
+            mapView.setRegion(MKCoordinateRegion(center: center, span: span), animated: true)
+        }
         
         pins = fetchAllPins()
         
@@ -81,8 +78,6 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         
         CoreDataStackManager.sharedInstance().saveContext()
     }
-    
-    
     
     func locationManager(manager: CLLocationManager!, didUpdateLocations locations: [AnyObject]!) {
 
