@@ -31,7 +31,7 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     var deletedIndexPaths: [NSIndexPath]!
     var updatedIndexPaths: [NSIndexPath]!
     
-    var downloadCounter = 12
+    var downloadCounter = AlbumClient.Constants.maxNum
     
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var bottomButton: UIBarButtonItem!
@@ -50,6 +50,7 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         fetchedResultsController.performFetch(&error)
     
         if pin.pictures.isEmpty {
+            self.bottomButton.enabled = false
             var i = 0
             while i < AlbumClient.Constants.maxNum {
                 let pic = Picture(url: "empty", context: self.sharedContext)
@@ -105,7 +106,6 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
                         let imageURL = NSURL(string: result!)
                         if let imageData = NSData(contentsOfURL: imageURL!) {
                             dispatch_async(dispatch_get_main_queue()){
-                                //cell.image.image = UIImage(data: imageData)
                                 picture.updateImage(result!)
                                 CoreDataStackManager.sharedInstance().saveContext()
                                 cell.activityIndicator.hidden = true
@@ -116,23 +116,35 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
                 }
 
             } else {
-               
-                if cell.image.image == nil {
-                    println("display image")
-                    let url = NSURL(string: picture.imageURL)!
-                    let imageData = NSData(contentsOfURL: url)
-                    
-                    let filename = picture.imageURL.lastPathComponent
-                    let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
-                    let pathArray = [dirPath, filename]
-                    let fileURL =  NSURL.fileURLWithPathComponents(pathArray)!
+                
+                let url = NSURL(string: picture.imageURL)!
+                let imageData = NSData(contentsOfURL: url)
+                
+                let filename = picture.imageURL.lastPathComponent
+                let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
+                let pathArray = [dirPath, filename]
+                let fileURL =  NSURL.fileURLWithPathComponents(pathArray)!
+                dispatch_async(dispatch_get_main_queue()){
+                    cell.image.image = UIImage(contentsOfFile: fileURL.path!)
+                }
+                
+                self.downloadCounter--
+                println(self.downloadCounter)
+                if self.downloadCounter == 0 {
                     dispatch_async(dispatch_get_main_queue()){
-                        cell.image.image = UIImage(contentsOfFile: fileURL.path!)
+                        self.bottomButton.enabled = true
                     }
                 }
+
             }
 
         })
+        
+        if let index = find(self.selectedIndexes, indexPath) {
+            cell.image.alpha = 0.05
+        } else {
+            cell.image.alpha = 1.0
+        }
     }
     
     
@@ -165,14 +177,8 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         
         // If the cell is "selected" it's color panel is grayed out
         // we use the Swift `find` function to see if the indexPath is in the array
-        dispatch_async(dispatch_get_main_queue()){
-            
-            if let index = find(self.selectedIndexes, indexPath) {
-                cell.image.alpha = 0.05
-            } else {
-                cell.image.alpha = 1.0
-            }
-        }
+        //dispatch_async(dispatch_get_main_queue()){
+        
         
         // Whenever a cell is tapped we will toggle its presence in the selectedIndexes array
         if let index = find(selectedIndexes, indexPath) {
@@ -267,11 +273,32 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     @IBAction func buttonButtonClicked() {
 
         if selectedIndexes.isEmpty {
-            deleteAllColors()
+            //deleteAllColors()
+            loadNewCollection()
         } else {
             deleteSelectedColors()
         }
         CoreDataStackManager.sharedInstance().saveContext()
+        updateBottomButton()
+    }
+    
+    func loadNewCollection(){
+        
+        self.deleteAllColors()
+        self.downloadCounter = AlbumClient.Constants.maxNum
+        
+        self.bottomButton.enabled = false
+        var i = 0
+        while i < AlbumClient.Constants.maxNum {
+            let pic = Picture(url: "empty", context: self.sharedContext)
+            pic.pin = self.pin
+            dispatch_async(dispatch_get_main_queue()){
+                self.collectionView.reloadData()
+                CoreDataStackManager.sharedInstance().saveContext()
+            }
+            i++
+        }
+        
     }
     
     func deleteAllColors() {
@@ -280,7 +307,10 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
             sharedContext.deleteObject(picture)
             deleteFileFromPath(picture.imageURL)
         }
-        CoreDataStackManager.sharedInstance().saveContext()
+        dispatch_async(dispatch_get_main_queue()){
+            self.selectedIndexes = [NSIndexPath]()
+            CoreDataStackManager.sharedInstance().saveContext()
+        }
     }
     
     func deleteSelectedColors() {
@@ -295,20 +325,20 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
             deleteFileFromPath(picture.imageURL)
         }
         
-        CoreDataStackManager.sharedInstance().saveContext()
+        dispatch_async(dispatch_get_main_queue()){
+            CoreDataStackManager.sharedInstance().saveContext()
+            self.selectedIndexes = [NSIndexPath]()
+            self.updateBottomButton()
+        }
         
-        selectedIndexes = [NSIndexPath]()
     }
     
     func updateBottomButton() {
-        if self.downloadCounter == 0 {
-            self.bottomButton.enabled = true
-        }
         
         if selectedIndexes.count > 0 {
             bottomButton.title = "Remove Selected Pictures"
         } else {
-            bottomButton.title = "Clear All"
+            bottomButton.title = "New Collection"
         }
     }
     

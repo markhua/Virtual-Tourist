@@ -102,7 +102,7 @@
                                     <constraint firstAttribute="height" constant="44" id="i0M-dW-CnH"/>
                                 </constraints>
                                 <items>
-                                    <barButtonItem title="Item" id="I7v-fL-2xC">
+                                    <barButtonItem title="New Collection" id="I7v-fL-2xC">
                                         <connections>
                                             <action selector="buttonButtonClicked" destination="cHl-Gc-49z" id="b2Q-Ne-gQG"/>
                                         </connections>
