@@ -16,7 +16,7 @@ import CoreData
 
 class Pin: NSManagedObject {
     
-    // We will store UIColor values in this value attribute
+    // Pin will store the longitude and latitude
     @NSManaged var long: Double
     @NSManaged var lat: Double
     @NSManaged var pictures: [Picture]
@@ -32,7 +32,6 @@ class Pin: NSManagedObject {
         let entity =  NSEntityDescription.entityForName("Pin", inManagedObjectContext: context)!
         super.init(entity: entity, insertIntoManagedObjectContext: context)
         
-        // Dictionary
         long = longitude
         lat = latitude
     }

@@ -27,6 +27,7 @@ class AlbumClient: NSObject {
         static let LAT_MAX = 90.0
         static let LON_MIN = -180.0
         static let LON_MAX = 180.0
+        // The maxNum determines how many cells will be downloaded in each album
         static let maxNum = 12
     }
     

@@ -1,20 +1,8 @@
-//
-//  ColorViewController.swift
-//
 
 import Foundation
 import CoreData
 import MapKit
 
-/**
- * The color collection demonstrates two techniques that will be useful in the Virtual Tourist app
- * 
- * - Selecting and deselecting cells in a collection
- * - Using NSFecthedResultsController with a collection
- *
- * Before you proceed, take a minute to run the app, and then read the Readme file. It gives a brief introduction to these
- * two topics. 
- */
 
 class PictureViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, NSFetchedResultsControllerDelegate {
    
@@ -22,16 +10,15 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     @IBOutlet weak var picturecollection: UICollectionView!
     var pin: Pin!
     
-    // The selected indexes array keeps all of the indexPaths for cells that are "selected". The array is
-    // used inside cellForItemAtIndexPath to lower the alpha of selected cells.  You can see how the array
-    // works by searchign through the code for 'selectedIndexes'
+    // The selected indexes array keeps all of the indexPaths for cells that are "selected".
     var selectedIndexes = [NSIndexPath]()
     
-    // Keep the changes. We will keep track of insertions, deletions, and updates. 
+    // Keep the changes
     var insertedIndexPaths: [NSIndexPath]!
     var deletedIndexPaths: [NSIndexPath]!
     var updatedIndexPaths: [NSIndexPath]!
     
+    // The downloadCounter is used to track when all downloads are completed
     var downloadCounter = AlbumClient.Constants.maxNum
     
     @IBOutlet weak var collectionView: UICollectionView!
@@ -42,6 +29,7 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Set the mapView on the top and add the pin
         var center =  CLLocationCoordinate2D(latitude: pin.lat, longitude: pin.long)
         var span = MKCoordinateSpan(latitudeDelta: 2, longitudeDelta: 2)
         mapView.setRegion(MKCoordinateRegion(center: center, span: span), animated: true)
@@ -57,12 +45,15 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         AlbumClient.sharedInstance().long = pin.long
         
         fetchedResultsController.performFetch(&error)
-    
+        
+        // If there is no image fetched, download new photos
         if pin.pictures.isEmpty {
             self.bottomButton.enabled = false
             var i = 0
             while i < AlbumClient.Constants.maxNum {
-                let pic = Picture(url: "empty", context: self.sharedContext)
+                
+                // Each picture has a default url so that they will appear as placeholder and then download image
+                let pic = Picture(url: "Placeholder", context: self.sharedContext)
                 pic.pin = self.pin
                 dispatch_async(dispatch_get_main_queue()){
                     CoreDataStackManager.sharedInstance().saveContext()
@@ -79,8 +70,7 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
-        // Lay out the collection view so that cells take up 1/3 of the width,
-        // with no space in between.
+        // Lay out the collection view so that cells take up 1/3 of the width
         let layout : UICollectionViewFlowLayout = UICollectionViewFlowLayout()
         layout.sectionInset = UIEdgeInsets(top: 0 , left: 1, bottom: 0, right: 0)
         layout.minimumLineSpacing = 1
@@ -101,34 +91,36 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         
         let queue:dispatch_queue_t = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)
         
-        println("Configure Cell")
-        
-        
         dispatch_async(queue, { () -> Void in
             
-            if picture.imageURL == "empty" {
+            if picture.imageURL == "Placeholder" {
                 
-                //cell.image.image = UIImage(named: "Placeholder")
                 cell.activityIndicator.hidden = false
                 AlbumClient.sharedInstance().getImageFromFlickrBySearch(){ success, result in
                     if success {
                         let imageURL = NSURL(string: result!)
                         if let imageData = NSData(contentsOfURL: imageURL!) {
                             dispatch_async(dispatch_get_main_queue()){
+                                
+                                // Update the URL after search, it will trigger the Core Data and collection update
                                 picture.updateImage(result!)
                                 CoreDataStackManager.sharedInstance().saveContext()
                                 cell.activityIndicator.hidden = true
                             }
                         }
+                    } else {
+                        self.notificationmsg(result!)
                     }
                     
                 }
 
             } else {
                 
+                // Display image if its path is already set in Core Data
                 let url = NSURL(string: picture.imageURL)!
                 let imageData = NSData(contentsOfURL: url)
                 
+                // Build the filepath again because the document path in iOS simulator is likely to change in every run
                 let filename = picture.imageURL.lastPathComponent
                 let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
                 let pathArray = [dirPath, filename]
@@ -137,8 +129,9 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
                     cell.image.image = UIImage(contentsOfFile: fileURL.path!)
                 }
                 
+                // Decrease downloadCounter by 1, enable the New Collection button when the counter is 0
                 self.downloadCounter--
-                println(self.downloadCounter)
+
                 if self.downloadCounter == 0 {
                     dispatch_async(dispatch_get_main_queue()){
                         self.bottomButton.enabled = true
@@ -169,7 +162,6 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         let sectionInfo = self.fetchedResultsController.sections![section] as! NSFetchedResultsSectionInfo
         
-        //println("number Of Cells: \(sectionInfo.numberOfObjects)")
         return sectionInfo.numberOfObjects
     }
     
@@ -184,12 +176,6 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         
         let cell = collectionView.cellForItemAtIndexPath(indexPath) as! PictureCell
         
-        // If the cell is "selected" it's color panel is grayed out
-        // we use the Swift `find` function to see if the indexPath is in the array
-        //dispatch_async(dispatch_get_main_queue()){
-        
-        
-        // Whenever a cell is tapped we will toggle its presence in the selectedIndexes array
         if let index = find(selectedIndexes, indexPath) {
             selectedIndexes.removeAtIndex(index)
         } else {
@@ -220,19 +206,14 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     
     
     // MARK: - Fetched Results Controller Delegate
-    
-    // Whenever changes are made to Core Data the following three methods are invoked. This first method is used to create 
-    // three fresh arrays to record the index paths that will be changed.
     func controllerWillChangeContent(controller: NSFetchedResultsController) {
-        // We are about to handle some new changes. Start out with empty arrays for each change type
+        
         insertedIndexPaths = [NSIndexPath]()
         deletedIndexPaths = [NSIndexPath]()
         updatedIndexPaths = [NSIndexPath]()
 
     }
-    
-    // The second method may be called multiple times, once for each Color object that is added, deleted, or changed. 
-    // We store the incex paths into the three arrays.
+
     func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
         
         switch type{
@@ -254,12 +235,7 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         }
     }
     
-    // This method is invoked after all of the changed in the current batch have been collected
-    // into the three index path arrays (insert, delete, and upate). We now need to loop through the 
-    // arrays and perform the changes.
     func controllerDidChangeContent(controller: NSFetchedResultsController) {
-        
-        //println("in controllerDidChangeContent. changes.count: \(insertedIndexPaths.count + deletedIndexPaths.count)")
         
         collectionView.performBatchUpdates({() -> Void in
                 
@@ -281,25 +257,28 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     
     @IBAction func buttonButtonClicked() {
 
+        // Load new collection if no pictures are selected, otherwise, delete selected picutures
         if selectedIndexes.isEmpty {
-            //deleteAllColors()
             loadNewCollection()
         } else {
-            deleteSelectedColors()
+            deleteSelectedItems()
         }
         CoreDataStackManager.sharedInstance().saveContext()
         updateBottomButton()
     }
     
+    // Load New Collection
     func loadNewCollection(){
         
-        self.deleteAllColors()
+        self.deleteAllItems()
         self.downloadCounter = AlbumClient.Constants.maxNum
         
         self.bottomButton.enabled = false
         var i = 0
+        
+        // Add new pictures like the way in ViewDidLoad
         while i < AlbumClient.Constants.maxNum {
-            let pic = Picture(url: "empty", context: self.sharedContext)
+            let pic = Picture(url: "Placeholder", context: self.sharedContext)
             pic.pin = self.pin
             dispatch_async(dispatch_get_main_queue()){
                 self.collectionView.reloadData()
@@ -310,7 +289,7 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         
     }
     
-    func deleteAllColors() {
+    func deleteAllItems() {
         
         for picture in fetchedResultsController.fetchedObjects as! [Picture] {
             sharedContext.deleteObject(picture)
@@ -322,14 +301,14 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         }
     }
     
-    func deleteSelectedColors() {
-        var colorsToDelete = [Picture]()
+    func deleteSelectedItems() {
+        var itemsToDelete = [Picture]()
         
         for indexPath in selectedIndexes {
-            colorsToDelete.append(fetchedResultsController.objectAtIndexPath(indexPath) as! Picture)
+            itemsToDelete.append(fetchedResultsController.objectAtIndexPath(indexPath) as! Picture)
         }
         
-        for picture in colorsToDelete {
+        for picture in itemsToDelete {
             sharedContext.deleteObject(picture)
             deleteFileFromPath(picture.imageURL)
         }
@@ -352,6 +331,7 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     }
     
     
+    // Helper function: Delete file from the path in parameter
     func deleteFileFromPath(imageURL: String){
         let filename = imageURL.lastPathComponent
         let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
@@ -361,6 +341,16 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
         var fileManager: NSFileManager = NSFileManager.defaultManager()
         var error: NSErrorPointer = NSErrorPointer()
         fileManager.removeItemAtPath(fileURL.path!, error: error)
+    }
+    
+    //Display notification with message string
+    func notificationmsg (msgstring: String)
+    {
+        dispatch_async(dispatch_get_main_queue()){
+            let controller = UIAlertController(title: "Notification", message: msgstring, preferredStyle: .Alert)
+            controller.addAction(UIAlertAction(title: "OK", style: .Default, handler: nil))
+            self.presentViewController(controller, animated: true, completion: nil)
+        }
     }
 
 }

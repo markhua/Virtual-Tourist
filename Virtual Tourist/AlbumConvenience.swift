@@ -10,20 +10,8 @@ import Foundation
 
 extension AlbumClient{
 
-    func createBoundingBoxString(lat: Double, long: Double) -> String {
-        
-        let latitude = lat
-        let longitude = long
-        
-        /* Fix added to ensure box is bounded by minimum and maximums */
-        let bottom_left_lon = max(longitude - AlbumClient.Constants.BOUNDING_BOX_HALF_WIDTH, AlbumClient.Constants.LON_MIN)
-        let bottom_left_lat = max(latitude - AlbumClient.Constants.BOUNDING_BOX_HALF_HEIGHT, AlbumClient.Constants.LAT_MIN)
-        let top_right_lon = min(longitude + AlbumClient.Constants.BOUNDING_BOX_HALF_HEIGHT, AlbumClient.Constants.LON_MAX)
-        let top_right_lat = min(latitude + AlbumClient.Constants.BOUNDING_BOX_HALF_HEIGHT, AlbumClient.Constants.LAT_MAX)
-        
-        return "\(bottom_left_lon),\(bottom_left_lat),\(top_right_lon),\(top_right_lat)"
-    }
     
+    // Get image from Flickr and return the image URL in the completionHandler
     func getImageFromFlickrBySearch(completionHandler: (success: Bool, Result: String?)->Void) {
         
         let methodArguments = [
@@ -55,6 +43,7 @@ extension AlbumClient{
                         /* Flickr API - will only return up the 4000 images (100 per page * 40 page max) */
                         let pageLimit = min(totalPages, 40)
                         let randomPage = Int(arc4random_uniform(UInt32(pageLimit))) + 1
+                        
                         self.getImageFromFlickrBySearchWithPage(methodArguments, pageNumber: randomPage) { (success, result) in
                             if success { completionHandler(success: true, Result: result) }
                         }
@@ -74,6 +63,7 @@ extension AlbumClient{
         
     }
     
+    // Get a random image from the witin single page, return the image URL in the completionHandler
     func getImageFromFlickrBySearchWithPage (methodArguments: [String: AnyObject], pageNumber: Int, completionHandler: (success: Bool, Result: String?)->Void) {
         var withPageDictionary = methodArguments
         withPageDictionary["page"] = pageNumber
@@ -140,6 +130,21 @@ extension AlbumClient{
         }
         
         return (!urlVars.isEmpty ? "?" : "") + join("&", urlVars)
+    }
+    
+    /* Helper function: Given latitude and longitude, convert to a bounding box */
+    func createBoundingBoxString(lat: Double, long: Double) -> String {
+        
+        let latitude = lat
+        let longitude = long
+        
+        /* Fix added to ensure box is bounded by minimum and maximums */
+        let bottom_left_lon = max(longitude - AlbumClient.Constants.BOUNDING_BOX_HALF_WIDTH, AlbumClient.Constants.LON_MIN)
+        let bottom_left_lat = max(latitude - AlbumClient.Constants.BOUNDING_BOX_HALF_HEIGHT, AlbumClient.Constants.LAT_MIN)
+        let top_right_lon = min(longitude + AlbumClient.Constants.BOUNDING_BOX_HALF_HEIGHT, AlbumClient.Constants.LON_MAX)
+        let top_right_lat = min(latitude + AlbumClient.Constants.BOUNDING_BOX_HALF_HEIGHT, AlbumClient.Constants.LAT_MAX)
+        
+        return "\(bottom_left_lon),\(bottom_left_lat),\(top_right_lon),\(top_right_lat)"
     }
     
 }

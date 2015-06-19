@@ -10,7 +10,7 @@ import UIKit
 import MapKit
 import CoreData
 
-class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate, NSFetchedResultsControllerDelegate{
+class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate{
 
     @IBOutlet weak var mapView: MKMapView!
     var locationManager: CLLocationManager!
@@ -21,17 +21,20 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
+        // Set map to get long press
         var longPressRecogniser = UILongPressGestureRecognizer(target: self, action: "handleLongPress:")
         longPressRecogniser.minimumPressDuration = 1.0
         mapView.addGestureRecognizer(longPressRecogniser)
         mapView.delegate = self
         
+        // Set location manager and its delegate to enable location update tracking
         locationManager = CLLocationManager()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestAlwaysAuthorization()
         locationManager.startUpdatingLocation()
         
+        // Get longtitude and latitude and span from UserDefaults
         var long = NSUserDefaults.standardUserDefaults().doubleForKey("Longitude")
         var lat = NSUserDefaults.standardUserDefaults().doubleForKey("Latitude")
         if long != 0 || lat != 0 {
@@ -48,6 +51,8 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
             let annotation = MKPointAnnotation()
             annotation.coordinate = CLLocationCoordinate2D(latitude: pin.lat, longitude: pin.long)
             annotation.title = "Pin No:"
+            
+            // Set the pin's number in subtitle so that we can track the pin's number after tapping a pin on the map
             annotation.subtitle = "\(i)"
             i++
             mapView.addAnnotation(annotation)
@@ -59,6 +64,7 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         // Dispose of any resources that can be recreated.
     }
     
+    // Add an annotation for long press
     func handleLongPress(getstureRecognizer : UIGestureRecognizer){
         if getstureRecognizer.state != .Began { return }
         
@@ -70,15 +76,16 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         annotation.title = "Pin No:"
         annotation.subtitle = "\(pins.count)"
         
+        
+        // Add the pin to the map, the Core data and the array
         mapView.addAnnotation(annotation)
-        
         let newPin = Pin(longitude: annotation.coordinate.longitude, latitude: annotation.coordinate.latitude, context: sharedContext)
-        
         pins.append(newPin)
         
         CoreDataStackManager.sharedInstance().saveContext()
     }
     
+    // Set user default values according to map location update
     func locationManager(manager: CLLocationManager!, didUpdateLocations locations: [AnyObject]!) {
 
         NSUserDefaults.standardUserDefaults().setDouble(mapView.centerCoordinate.longitude as Double, forKey: "Longitude")
@@ -87,7 +94,8 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         NSUserDefaults.standardUserDefaults().setDouble(mapView.region.span.latitudeDelta as Double, forKey: "LatDel")
  
     }
-
+    
+    // Fetch the pins to an array instead of using fetchcontroller because it helps locate each Pin with and index in Int format
     func fetchAllPins() -> [Pin] {
         let error: NSErrorPointer = nil
         
@@ -106,37 +114,9 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         return results as! [Pin]
     }
     
-    // MARK: - NSFetchedResultsController
-    
-    lazy var fetchedResultsController: NSFetchedResultsController = {
-        
-        let fetchRequest = NSFetchRequest(entityName: "Pin")
-        fetchRequest.sortDescriptors = []
-        
-        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.sharedContext, sectionNameKeyPath: nil, cacheName: nil)
-        fetchedResultsController.delegate = self
-        
-        return fetchedResultsController
-        }()
     
     
-    // MARK: - Fetched Results Controller Delegate
-
-    func controllerWillChangeContent(controller: NSFetchedResultsController) {
-
-    }
-
-    func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
-        
-    }
-
-    func controllerDidChangeContent(controller: NSFetchedResultsController) {
-        
-    }
-    
-    //Add information button to each pin
-    
-    
+    // Navigate to the next ViewController
     func mapView(mapView: MKMapView!, didSelectAnnotationView view: MKAnnotationView!)
     {
         let index = view.annotation.subtitle!.toInt()!
@@ -147,37 +127,6 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         
         self.navigationController!.pushViewController(controller, animated: true)
     }
-
-    
-    /*
-    
-    func mapView(mapView:MKMapView!, viewForAnnotation annotation: MKAnnotation!) -> MKAnnotationView {
-    let identifier = "MapLocation"
-    
-    var annotationView = mapView.dequeueReusableAnnotationViewWithIdentifier(identifier)
-    if annotationView == nil {
-    annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
-    annotationView.canShowCallout = true
-    
-    let btn = UIButton.buttonWithType(.DetailDisclosure) as! UIButton
-    annotationView.rightCalloutAccessoryView = btn
-    }else {
-    annotationView.annotation = annotation
-    }
-    return annotationView
-    }
-    
-    func mapView(mapView: MKMapView!, annotationView view: MKAnnotationView!, didChangeDragState newState: MKAnnotationViewDragState, fromOldState oldState: MKAnnotationViewDragState) {
-        switch (newState) {
-        case .Starting:
-            view.dragState = .Dragging
-        case .Ending, .Canceling:
-            view.dragState = .None
-        default: break
-        }
-        println("done")
-    }*/
-
 
 }
 

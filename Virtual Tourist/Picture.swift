@@ -1,10 +1,3 @@
-//
-//  Color.swift
-//  ColorCollection
-//
-//  Created by Jason on 4/7/15.
-//  Copyright (c) 2015 Udacity. All rights reserved.
-//
 
 import UIKit
 import CoreData
@@ -13,7 +6,7 @@ import CoreData
 
 class Picture: NSManagedObject {
 
-    // We will store UIColor values in this value attribute
+    // The imageURL is the path in document directory
     @NSManaged var imageURL: String
     @NSManaged var pin: Pin?
     
@@ -31,13 +24,14 @@ class Picture: NSManagedObject {
         updateImage(url)
     }
     
+    // Update the imageURL
     func updateImage(url: String) {
         
         let imageurl = NSURL(string: url)!
         if let imageData = NSData(contentsOfURL: imageurl) {
             imageData.writeToURL(imageFileURL(url), atomically: true)
             imageURL = imageFileURL(url).path!
-            println(imageURL)
+            //println(imageURL)
             
         }else{
             imageURL = url

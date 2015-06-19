@@ -1,6 +1,3 @@
-//
-//  ColorCell
-//
 
 import UIKit
 
