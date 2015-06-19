@@ -50,8 +50,14 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="JOe-P0-5Qd">
+                                <rect key="frame" x="0.0" y="60" width="600" height="80"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="80" id="tQP-Sg-SpX"/>
+                                </constraints>
+                            </mapView>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="r3e-Gd-heS">
-                                <rect key="frame" x="0.0" y="50" width="600" height="550"/>
+                                <rect key="frame" x="0.0" y="140" width="600" height="460"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="fAF-hJ-Lzi">
                                     <size key="itemSize" width="163" height="162"/>
@@ -112,18 +118,34 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstItem="r3e-Gd-heS" firstAttribute="top" secondItem="JOe-P0-5Qd" secondAttribute="bottom" id="5nV-Ib-sve"/>
                             <constraint firstItem="r3e-Gd-heS" firstAttribute="leading" secondItem="zOE-zP-oYn" secondAttribute="leadingMargin" constant="-16" id="65u-jm-fQ7"/>
-                            <constraint firstItem="r3e-Gd-heS" firstAttribute="top" secondItem="zOE-zP-oYn" secondAttribute="topMargin" constant="50" id="CJG-uf-OHb"/>
+                            <constraint firstItem="r3e-Gd-heS" firstAttribute="top" secondItem="zOE-zP-oYn" secondAttribute="topMargin" constant="100" id="CJG-uf-OHb"/>
                             <constraint firstItem="pY6-Cc-QdC" firstAttribute="leading" secondItem="zOE-zP-oYn" secondAttribute="leadingMargin" constant="-16" id="Dat-t0-OuS"/>
                             <constraint firstItem="utX-hL-Jj5" firstAttribute="top" secondItem="r3e-Gd-heS" secondAttribute="bottom" id="Etb-vM-JM6"/>
+                            <constraint firstItem="pY6-Cc-QdC" firstAttribute="top" secondItem="JOe-P0-5Qd" secondAttribute="bottom" constant="468" id="Ghs-ai-Yrt"/>
+                            <constraint firstItem="JOe-P0-5Qd" firstAttribute="leading" secondItem="zOE-zP-oYn" secondAttribute="leadingMargin" constant="-8" id="Hu8-FY-YrI"/>
                             <constraint firstAttribute="trailingMargin" secondItem="r3e-Gd-heS" secondAttribute="trailing" constant="-16" id="WPm-lj-Xc2"/>
                             <constraint firstAttribute="trailingMargin" secondItem="pY6-Cc-QdC" secondAttribute="trailing" constant="-16" id="YDW-kx-yon"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="JOe-P0-5Qd" secondAttribute="trailing" constant="-8" id="dy3-J2-Rjh"/>
+                            <constraint firstItem="JOe-P0-5Qd" firstAttribute="leading" secondItem="zOE-zP-oYn" secondAttribute="leadingMargin" constant="-16" id="feC-Sl-1uD"/>
+                            <constraint firstItem="JOe-P0-5Qd" firstAttribute="top" secondItem="zOE-zP-oYn" secondAttribute="topMargin" constant="60" id="jrd-dQ-TTF"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="JOe-P0-5Qd" secondAttribute="trailing" constant="-16" id="kSg-KD-dud"/>
                             <constraint firstItem="utX-hL-Jj5" firstAttribute="top" secondItem="pY6-Cc-QdC" secondAttribute="bottom" id="ltg-3m-u9N"/>
                         </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="Hu8-FY-YrI"/>
+                                <exclude reference="dy3-J2-Rjh"/>
+                                <exclude reference="CJG-uf-OHb"/>
+                                <exclude reference="Ghs-ai-Yrt"/>
+                            </mask>
+                        </variation>
                     </view>
                     <connections>
                         <outlet property="bottomButton" destination="I7v-fL-2xC" id="Xjy-qI-zZa"/>
                         <outlet property="collectionView" destination="r3e-Gd-heS" id="kxq-Ts-XWR"/>
+                        <outlet property="mapView" destination="JOe-P0-5Qd" id="di4-gZ-frc"/>
                         <outlet property="picturecollection" destination="r3e-Gd-heS" id="4Ix-xB-aYb"/>
                     </connections>
                 </viewController>

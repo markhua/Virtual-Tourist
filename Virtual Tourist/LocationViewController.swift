@@ -47,7 +47,7 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         for pin in pins {
             let annotation = MKPointAnnotation()
             annotation.coordinate = CLLocationCoordinate2D(latitude: pin.lat, longitude: pin.long)
-            annotation.title = "default"
+            annotation.title = "Pin No:"
             annotation.subtitle = "\(i)"
             i++
             mapView.addAnnotation(annotation)
@@ -67,7 +67,7 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         
         let annotation = MKPointAnnotation()
         annotation.coordinate = touchMapCoordinate
-        annotation.title = "default"
+        annotation.title = "Pin No:"
         annotation.subtitle = "\(pins.count)"
         
         mapView.addAnnotation(annotation)
@@ -135,23 +135,10 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
     }
     
     //Add information button to each pin
-    func mapView(mapView:MKMapView!, viewForAnnotation annotation: MKAnnotation!) -> MKAnnotationView {
-        let identifier = "MapLocation"
-
-        var annotationView = mapView.dequeueReusableAnnotationViewWithIdentifier(identifier)
-        if annotationView == nil {
-            annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
-            annotationView.canShowCallout = true
-            
-            let btn = UIButton.buttonWithType(.DetailDisclosure) as! UIButton
-            annotationView.rightCalloutAccessoryView = btn
-        }else {
-            annotationView.annotation = annotation
-        }
-        return annotationView
-    }
     
-    func mapView(mapView: MKMapView!, annotationView view: MKAnnotationView!, calloutAccessoryControlTapped control: UIControl!){
+    
+    func mapView(mapView: MKMapView!, didSelectAnnotationView view: MKAnnotationView!)
+    {
         let index = view.annotation.subtitle!.toInt()!
         
         let controller = storyboard!.instantiateViewControllerWithIdentifier("PictureViewController") as! PictureViewController
@@ -159,11 +146,27 @@ class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         controller.pin = pin
         
         self.navigationController!.pushViewController(controller, animated: true)
-
     }
-    
+
     
     /*
+    
+    func mapView(mapView:MKMapView!, viewForAnnotation annotation: MKAnnotation!) -> MKAnnotationView {
+    let identifier = "MapLocation"
+    
+    var annotationView = mapView.dequeueReusableAnnotationViewWithIdentifier(identifier)
+    if annotationView == nil {
+    annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+    annotationView.canShowCallout = true
+    
+    let btn = UIButton.buttonWithType(.DetailDisclosure) as! UIButton
+    annotationView.rightCalloutAccessoryView = btn
+    }else {
+    annotationView.annotation = annotation
+    }
+    return annotationView
+    }
+    
     func mapView(mapView: MKMapView!, annotationView view: MKAnnotationView!, didChangeDragState newState: MKAnnotationViewDragState, fromOldState oldState: MKAnnotationViewDragState) {
         switch (newState) {
         case .Starting:

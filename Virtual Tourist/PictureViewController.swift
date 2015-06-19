@@ -18,6 +18,7 @@ import MapKit
 
 class PictureViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, NSFetchedResultsControllerDelegate {
    
+    @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var picturecollection: UICollectionView!
     var pin: Pin!
     
@@ -40,6 +41,14 @@ class PictureViewController: UIViewController, UICollectionViewDataSource, UICol
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        var center =  CLLocationCoordinate2D(latitude: pin.lat, longitude: pin.long)
+        var span = MKCoordinateSpan(latitudeDelta: 2, longitudeDelta: 2)
+        mapView.setRegion(MKCoordinateRegion(center: center, span: span), animated: true)
+        
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = CLLocationCoordinate2D(latitude: pin.lat, longitude: pin.long)
+        mapView.addAnnotation(annotation)
         
         // Start the fetched results controller
         var error: NSError?
